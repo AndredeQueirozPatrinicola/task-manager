@@ -6,7 +6,7 @@
 type Task = {
     id: string;
     title: string;
-    description: string;
+    description?: string;
     createdAt: Date
 }
 
