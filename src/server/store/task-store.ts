@@ -7,14 +7,42 @@ export {
     TaskStore
 };
 
+/*
+    I choose to build this class to represent the In memory storage of tasks. In this way i can
+    easyly instaciate this class and re-use it in all parts of my application server.
+*/
 class TaskStore {
 
-    tasks = new Map<string, Task>();
+    private readonly tasks = new Map<string, Task>();
 
-    list(){}
-    findById(){}
-    create(){}
-    update(){}
-    delete(){}
+    list(): Task[]{
+        return [...this.tasks.values()];
+    }
 
+    findById(id: string): Task | undefined{
+        return this.tasks.get(id);
+    }
+
+    create(task: Task): Task{
+        this.tasks.set(task.id, task)
+        return task;
+    }
+
+    update(taskId: string, task: Task): Task | undefined{
+        const taskQuery = this.tasks.get(taskId);
+
+        if (!task) return undefined;
+
+        const updatedTask = {
+            ...taskQuery,
+            ...task,
+        };
+
+        this.tasks.set(taskId, updatedTask);
+        return task;
+    }
+    
+    delete(taskId: string){
+        return this.tasks.delete(taskId)
+    }
 }
