@@ -32,7 +32,7 @@ export const taskRouter = createTRPCRouter({
     .mutation(({ input }) => {
       const task = taskStore.update(input.id, input)
       if(!task) {
-        return new TRPCError({
+        throw new TRPCError({
           code: "NOT_FOUND",
           message: "Task not found",
         })

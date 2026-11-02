@@ -31,7 +31,7 @@ class TaskStore {
     update(taskId: string, task: Task): Task | undefined{
         const taskQuery = this.tasks.get(taskId);
 
-        if (!task) return undefined;
+        if (!task || !taskQuery) return undefined;
 
         const updatedTask = {
             ...taskQuery,
@@ -41,7 +41,7 @@ class TaskStore {
         this.tasks.set(taskId, updatedTask);
         return task;
     }
-    
+
     delete(taskId: string){
         return this.tasks.delete(taskId)
     }
