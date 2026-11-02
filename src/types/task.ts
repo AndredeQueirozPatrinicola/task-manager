@@ -7,7 +7,7 @@ type Task = {
     id: string;
     title: string;
     description?: string;
-    createdAt: Date
+    createdAt?: Date
 }
 
 export type {

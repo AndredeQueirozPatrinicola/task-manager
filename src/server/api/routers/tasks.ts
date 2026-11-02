@@ -1,7 +1,7 @@
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { createTaskSchema, updateTaskSchema, deleteTaskSchema } from "@/lib/validations/task";
 
-import { Task } from "@/types/task";
+import { TRPCError } from "@trpc/server";
 import { TaskStore } from "../../store/task-store";
 
 /*
@@ -30,12 +30,29 @@ export const taskRouter = createTRPCRouter({
   update: publicProcedure
     .input(updateTaskSchema)
     .mutation(({ input }) => {
+      const task = taskStore.update(input.id, input)
+      if(!task) {
+        return new TRPCError({
+          code: "NOT_FOUND",
+          message: "Task not found",
+        })
+      }
+      return task
     }),
 
   delete: publicProcedure
     .input(deleteTaskSchema)
     .mutation(({ input }) => {
-      return taskStore.delete(input.id)
+      const deleted = taskStore.delete(input.id);
+
+      if (!deleted) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Task not found",
+        });
+      }
+
+      return { success: true };
     }),
 
 });
