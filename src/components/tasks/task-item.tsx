@@ -19,14 +19,12 @@ export function TaskItem({ task }: TaskItemProps) {
           {task.description && (
             <p className="mt-1 text-sm text-gray-600 break-words">{task.description}</p>
           )}
-          {task.createdAt && (
-            <time
-              dateTime={task.createdAt.toISOString()}
-              className="mt-2 block text-xs text-gray-400"
-            >
-              {dateFormatter.format(task.createdAt)}
-            </time>
-          )}
+          <time
+            dateTime={task.createdAt.toISOString()}
+            className="mt-2 block text-xs text-gray-400"
+          >
+            {dateFormatter.format(task.createdAt)}
+          </time>
         </div>
 
         <Link

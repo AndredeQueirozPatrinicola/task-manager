@@ -60,6 +60,40 @@ describe("TaskStore", () => {
         expect(store.findById(taskId)).toEqual(updatedTask)
     })
 
+    it("should return the merged task on update", () => {
+        const task = {
+            id: crypto.randomUUID(),
+            title: "Test Task",
+            description: "Original description",
+            createdAt: new Date(),
+        };
+
+        store.create(task)
+
+        const result = store.update(task.id, { title: "Another title" })
+
+        expect(result).toEqual({ ...task, title: "Another title" })
+    })
+
+    it("should not change id or createdAt on update", () => {
+        const task = {
+            id: crypto.randomUUID(),
+            title: "Test Task",
+            createdAt: new Date("2024-01-01"),
+        };
+
+        const changes = {
+            id: "other-id",
+            title: "Another title",
+            createdAt: new Date(),
+        }
+
+        store.create(task)
+        store.update(task.id, changes)
+
+        expect(store.findById(task.id)).toEqual({ ...task, title: "Another title" })
+    })
+
     it("should return undefined to update missing task", () => {
         const task = {
             id: crypto.randomUUID(),

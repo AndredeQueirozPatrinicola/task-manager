@@ -99,6 +99,17 @@ describe("Task Router", () => {
             });
         });
 
+        it("should keep createdAt when updating", async () => {
+            const task = await createTask();
+
+            const updated = await caller.tasks.update({
+                id: task.id,
+                title: "Updated Task",
+            });
+
+            expect(updated.createdAt).toEqual(task.createdAt);
+        });
+
         it("should return NOT_FOUND for a missing task", async () => {
             await expect(
                 caller.tasks.update({

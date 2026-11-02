@@ -7,9 +7,12 @@ type Task = {
     id: string;
     title: string;
     description?: string;
-    createdAt?: Date
+    createdAt: Date
 }
 
+type TaskChanges = Partial<Pick<Task, "title" | "description">>;
+
 export type {
-    Task
+    Task,
+    TaskChanges
 };

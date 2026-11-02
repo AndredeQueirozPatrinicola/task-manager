@@ -1,7 +1,7 @@
 /*
     I created this file to store the data-structures to save in-memory tasks.
 */
-import { Task } from "@/types/task";
+import { Task, TaskChanges } from "@/types/task";
 
 export {
     TaskStore
@@ -28,18 +28,20 @@ class TaskStore {
         return task;
     }
 
-    update(taskId: string, task: Task): Task | undefined{
+    update(taskId: string, changes: TaskChanges): Task | undefined{
         const taskQuery = this.tasks.get(taskId);
 
-        if (!task || !taskQuery) return undefined;
+        if (!taskQuery) return undefined;
 
-        const updatedTask = {
+        const updatedTask: Task = {
             ...taskQuery,
-            ...task,
+            ...changes,
+            id: taskQuery.id,
+            createdAt: taskQuery.createdAt,
         };
 
         this.tasks.set(taskId, updatedTask);
-        return task;
+        return updatedTask;
     }
 
     delete(taskId: string){

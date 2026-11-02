@@ -30,7 +30,8 @@ export const taskRouter = createTRPCRouter({
   update: publicProcedure
     .input(updateTaskSchema)
     .mutation(({ input }) => {
-      const task = taskStore.update(input.id, input)
+      const { id, ...changes } = input
+      const task = taskStore.update(id, changes)
       if(!task) {
         throw new TRPCError({
           code: "NOT_FOUND",
