@@ -17,9 +17,9 @@ export function TaskItem({ task, isDeleting, onDelete }: TaskItemProps) {
     <li className="rounded border border-gray-200 bg-white p-4">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h2 className="font-medium break-words">{task.title}</h2>
+          <h2 className="font-medium wrap-break-words">{task.title}</h2>
           {task.description && (
-            <p className="mt-1 text-sm text-gray-600 break-words">{task.description}</p>
+            <p className="mt-1 text-sm text-gray-600 wrap-break-words">{task.description}</p>
           )}
           <time
             dateTime={task.createdAt.toISOString()}

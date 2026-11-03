@@ -12,7 +12,7 @@ export default async function HomePage() {
       <header className="flex items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">My Tasks</h1>
-          <p className="text-sm text-gray-500">Organize your work, one task at a time.</p>
+          <p className="text-sm text-gray-500">Create tasks to organize your work.</p>
         </div>
         <Link
           href="/tasks/new"
