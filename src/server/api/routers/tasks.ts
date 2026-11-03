@@ -1,5 +1,5 @@
 import { createTRPCRouter, publicProcedure } from "../trpc";
-import { createTaskSchema, updateTaskSchema, deleteTaskSchema } from "@/lib/validations/task";
+import { createTaskSchema, updateTaskSchema, deleteTaskSchema, taskByIdSchema } from "@/lib/validations/task";
 
 import { TRPCError } from "@trpc/server";
 import { TaskStore } from "../../store/task-store";
@@ -16,6 +16,21 @@ export const taskRouter = createTRPCRouter({
     list: publicProcedure.query(() => {
     return taskStore.list();
   }),
+
+  byId: publicProcedure
+    .input(taskByIdSchema)
+    .query(({ input }) => {
+      const task = taskStore.findById(input.id);
+
+      if (!task) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Task not found",
+        });
+      }
+
+      return task;
+    }),
 
   create: publicProcedure
     .input(createTaskSchema)

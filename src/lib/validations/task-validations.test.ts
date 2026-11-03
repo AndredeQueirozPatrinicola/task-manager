@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createTaskSchema, deleteTaskSchema, updateTaskSchema } from "./task";
+import { createTaskSchema, deleteTaskSchema, taskByIdSchema, updateTaskSchema } from "./task";
 
 describe("createTaskSchema", () => {
 
@@ -135,4 +135,22 @@ describe("deleteTaskSchema", () => {
         expect(result.success).toBe(false);
     });
 
+});
+
+describe("taskByIdSchema", () => {
+    it("should accept a valid UUID", () => {
+        const result = taskByIdSchema.safeParse({
+            id: crypto.randomUUID(),
+        });
+
+        expect(result.success).toBe(true);
+    });
+
+    it("should reject an invalid UUID", () => {
+        const result = taskByIdSchema.safeParse({
+            id: "invalid-uuid",
+        });
+
+        expect(result.success).toBe(false);
+    });
 });

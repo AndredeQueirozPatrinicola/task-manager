@@ -84,6 +84,32 @@ describe("Task Router", () => {
         });
     });
 
+    describe("tasks.byId", () => {
+        it("should return an existing task", async () => {
+            const task = await createTask("By Id Task");
+
+            const found = await caller.tasks.byId({ id: task.id });
+
+            expect(found).toEqual(task);
+        });
+
+        it("should return NOT_FOUND for a missing task", async () => {
+            await expect(
+                caller.tasks.byId({ id: crypto.randomUUID() })
+            ).rejects.toMatchObject({
+                code: "NOT_FOUND",
+            });
+        });
+
+        it("should reject an invalid UUID", async () => {
+            await expect(
+                caller.tasks.byId({ id: "invalid-id" })
+            ).rejects.toMatchObject({
+                code: "BAD_REQUEST",
+            });
+        });
+    });
+
     describe("tasks.update", () => {
         it("should update an existing task", async () => {
             const task = await createTask();

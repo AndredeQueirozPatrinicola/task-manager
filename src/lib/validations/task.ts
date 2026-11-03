@@ -18,8 +18,13 @@ const deleteTaskSchema = z.object({
     id: z.string().trim().uuid()
 })
 
+const taskByIdSchema = z.object({
+    id: z.string().trim().uuid()
+})
+
 export {
     createTaskSchema,
     updateTaskSchema,
-    deleteTaskSchema
+    deleteTaskSchema,
+    taskByIdSchema
 };
