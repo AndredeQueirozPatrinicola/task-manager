@@ -8,9 +8,11 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
 
 type TaskItemProps = {
   task: Task;
+  isDeleting: boolean;
+  onDelete: (task: Task) => void;
 };
 
-export function TaskItem({ task }: TaskItemProps) {
+export function TaskItem({ task, isDeleting, onDelete }: TaskItemProps) {
   return (
     <li className="rounded border border-gray-200 bg-white p-4">
       <div className="flex items-start justify-between gap-4">
@@ -27,12 +29,19 @@ export function TaskItem({ task }: TaskItemProps) {
           </time>
         </div>
 
-        <Link
-          href={`/tasks/${task.id}/edit`}
-          className="shrink-0 text-sm text-gray-600 hover:underline"
-        >
-          Edit
-        </Link>
+        <div className="flex shrink-0 gap-3 text-sm">
+          <Link href={`/tasks/${task.id}/edit`} className="text-gray-600 hover:underline">
+            Edit
+          </Link>
+          <button
+            type="button"
+            onClick={() => onDelete(task)}
+            disabled={isDeleting}
+            className="text-red-600 hover:underline disabled:opacity-50"
+          >
+            {isDeleting ? "Deleting..." : "Delete"}
+          </button>
+        </div>
       </div>
     </li>
   );

@@ -22,7 +22,7 @@ export default async function HomePage() {
         </Link>
       </header>
 
-      <TaskList tasks={tasks} />
+      <TaskList initialTasks={tasks} />
     </main>
   );
 }

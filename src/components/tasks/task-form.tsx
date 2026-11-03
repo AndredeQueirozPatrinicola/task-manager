@@ -3,8 +3,8 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { TRPCClientError } from "@trpc/client";
 import { trpc } from "@/lib/trpc/client";
+import { getErrorMessage, isTRPCClientError } from "@/lib/trpc/errors";
 import { createTaskSchema } from "@/lib/validations/task";
 import type { Task } from "@/types/task";
 
@@ -55,11 +55,18 @@ export function TaskForm({ task }: TaskFormProps) {
 
       router.push("/");
     } catch (error) {
-      setSubmitError(
-        error instanceof TRPCClientError
-          ? error.message
-          : "Something went wrong. Please try again.",
-      );
+      const serverFieldErrors = isTRPCClientError(error)
+        ? error.data?.zodError?.fieldErrors
+        : undefined;
+
+      if (serverFieldErrors) {
+        setFieldErrors({
+          title: serverFieldErrors.title?.[0],
+          description: serverFieldErrors.description?.[0],
+        });
+      }
+
+      setSubmitError(getErrorMessage(error));
       setIsSubmitting(false);
     }
   }
