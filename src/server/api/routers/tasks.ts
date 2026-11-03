@@ -1,5 +1,5 @@
 import { createTRPCRouter, publicProcedure } from "../trpc";
-import { createTaskSchema, updateTaskSchema, deleteTaskSchema, taskByIdSchema } from "@/lib/validations/task";
+import { createTaskSchema, updateTaskSchema, deleteTaskSchema, taskByIdSchema, listTasksSchema } from "@/lib/validations/task";
 
 import { TRPCError } from "@trpc/server";
 import { TaskStore } from "../../store/task-store";
@@ -16,6 +16,12 @@ export const taskRouter = createTRPCRouter({
     list: publicProcedure.query(() => {
     return taskStore.list();
   }),
+
+  listPaginated: publicProcedure
+    .input(listTasksSchema)
+    .query(({ input }) => {
+      return taskStore.paginate(input);
+    }),
 
   byId: publicProcedure
     .input(taskByIdSchema)

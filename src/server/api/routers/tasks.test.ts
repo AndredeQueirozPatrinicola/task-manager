@@ -1,6 +1,7 @@
 
 import { describe, it, expect } from "vitest";
 import { appRouter } from "@/server/api/root";
+import type { PaginatedTasks, TaskCursor } from "@/types/task";
 
 describe("Task Router", () => {
     const caller = appRouter.createCaller({});
@@ -81,6 +82,54 @@ describe("Task Router", () => {
         expect(tasks).toEqual(
             expect.arrayContaining([first, second])
         );
+        });
+    });
+
+    describe("tasks.listPaginated", () => {
+        it("should use a default limit of 10", async () => {
+            await Promise.all(
+                Array.from({ length: 11 }, (_, index) => createTask(`Paginated ${index}`))
+            );
+
+            const page = await caller.tasks.listPaginated({});
+
+            expect(page.items).toHaveLength(10);
+            expect(page.nextCursor).not.toBeNull();
+        });
+
+        it("should walk through every task without repeating", async () => {
+            await createTask("Walk Task");
+
+            const all = await caller.tasks.list();
+            const ids: string[] = [];
+            let cursor: TaskCursor | null = null;
+
+            do {
+                const page: PaginatedTasks = await caller.tasks.listPaginated({ limit: 3, cursor });
+                ids.push(...page.items.map((task) => task.id));
+                cursor = page.nextCursor;
+            } while (cursor);
+
+            expect(new Set(ids).size).toBe(ids.length);
+            expect(ids).toHaveLength(all.length);
+        });
+
+        it("should reject a limit out of range", async () => {
+            await expect(
+                caller.tasks.listPaginated({ limit: 0 })
+            ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+
+            await expect(
+                caller.tasks.listPaginated({ limit: 51 })
+            ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+        });
+
+        it("should reject an invalid cursor", async () => {
+            await expect(
+                caller.tasks.listPaginated({
+                    cursor: { id: "invalid-id", createdAt: new Date() },
+                })
+            ).rejects.toMatchObject({ code: "BAD_REQUEST" });
         });
     });
 

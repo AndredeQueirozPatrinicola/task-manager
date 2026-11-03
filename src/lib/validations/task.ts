@@ -22,9 +22,18 @@ const taskByIdSchema = z.object({
     id: z.string().trim().uuid()
 })
 
+const listTasksSchema = z.object({
+    limit: z.number().int().min(1).max(50).default(10),
+    cursor: z.object({
+        id: z.string().uuid(),
+        createdAt: z.date(),
+    }).nullish(),
+})
+
 export {
     createTaskSchema,
     updateTaskSchema,
     deleteTaskSchema,
-    taskByIdSchema
+    taskByIdSchema,
+    listTasksSchema
 };

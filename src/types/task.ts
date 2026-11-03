@@ -12,7 +12,16 @@ type Task = {
 
 type TaskChanges = Partial<Pick<Task, "title" | "description">>;
 
+type TaskCursor = Pick<Task, "id" | "createdAt">;
+
+type PaginatedTasks = {
+    items: Task[];
+    nextCursor: TaskCursor | null;
+};
+
 export type {
     Task,
-    TaskChanges
+    TaskChanges,
+    TaskCursor,
+    PaginatedTasks
 };

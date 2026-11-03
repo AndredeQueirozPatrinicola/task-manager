@@ -1,11 +1,19 @@
 /*
     I created this file to store the data-structures to save in-memory tasks.
 */
-import { Task, TaskChanges } from "@/types/task";
+import { PaginatedTasks, Task, TaskChanges, TaskCursor } from "@/types/task";
 
 export {
     TaskStore
 };
+
+type PaginateOptions = {
+    limit: number;
+    cursor?: TaskCursor | null;
+};
+
+const compareNewestFirst = (a: TaskCursor, b: TaskCursor) =>
+    b.createdAt.getTime() - a.createdAt.getTime() || b.id.localeCompare(a.id);
 
 /*
     I choose to build this class to represent the In memory storage of tasks. In this way i can
@@ -17,6 +25,24 @@ class TaskStore {
 
     list(): Task[]{
         return [...this.tasks.values()];
+    }
+
+    paginate({ limit, cursor }: PaginateOptions): PaginatedTasks{
+        const sorted = this.list().sort(compareNewestFirst);
+        const remaining = cursor
+            ? sorted.filter((task) => compareNewestFirst(cursor, task) < 0)
+            : sorted;
+
+        const items = remaining.slice(0, limit);
+        const lastItem = items.at(-1);
+        const hasMore = remaining.length > limit;
+
+        return {
+            items,
+            nextCursor: hasMore && lastItem
+                ? { id: lastItem.id, createdAt: lastItem.createdAt }
+                : null,
+        };
     }
 
     findById(id: string): Task | undefined{

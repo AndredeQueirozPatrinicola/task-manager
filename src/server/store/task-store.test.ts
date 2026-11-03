@@ -120,4 +120,93 @@ describe("TaskStore", () => {
     it("should return false deleting not existing task", () => {
         expect(store.delete("non-existing-task")).toEqual(false)
     })
+
+    describe("paginate", () => {
+        const createTasks = (count: number) =>
+            Array.from({ length: count }, (_, index) =>
+                store.create({
+                    id: crypto.randomUUID(),
+                    title: `Task ${index + 1}`,
+                    createdAt: new Date(2024, 0, index + 1),
+                })
+            );
+
+        it("should return the newest tasks first", () => {
+            const tasks = createTasks(3);
+
+            const page = store.paginate({ limit: 10 });
+
+            expect(page.items).toEqual([...tasks].reverse());
+            expect(page.nextCursor).toBeNull();
+        });
+
+        it("should respect the limit and return a cursor", () => {
+            const tasks = createTasks(5);
+
+            const page = store.paginate({ limit: 2 });
+
+            expect(page.items).toEqual([tasks[4], tasks[3]]);
+            expect(page.nextCursor).toEqual({
+                id: tasks[3].id,
+                createdAt: tasks[3].createdAt,
+            });
+        });
+
+        it("should continue from the cursor", () => {
+            const tasks = createTasks(5);
+
+            const first = store.paginate({ limit: 2 });
+            const second = store.paginate({ limit: 2, cursor: first.nextCursor });
+            const third = store.paginate({ limit: 2, cursor: second.nextCursor });
+
+            expect(second.items).toEqual([tasks[2], tasks[1]]);
+            expect(third.items).toEqual([tasks[0]]);
+            expect(third.nextCursor).toBeNull();
+        });
+
+        it("should not return a cursor when the last page is exactly full", () => {
+            createTasks(4);
+
+            const first = store.paginate({ limit: 2 });
+            const second = store.paginate({ limit: 2, cursor: first.nextCursor });
+
+            expect(second.items).toHaveLength(2);
+            expect(second.nextCursor).toBeNull();
+        });
+
+        it("should keep working when the cursor task was deleted", () => {
+            const tasks = createTasks(4);
+
+            const first = store.paginate({ limit: 2 });
+            store.delete(tasks[2].id);
+
+            const second = store.paginate({ limit: 2, cursor: first.nextCursor });
+
+            expect(second.items).toEqual([tasks[1], tasks[0]]);
+        });
+
+        it("should not skip or repeat tasks with the same createdAt", () => {
+            const createdAt = new Date(2024, 0, 1);
+            const tasks = Array.from({ length: 5 }, (_, index) =>
+                store.create({
+                    id: crypto.randomUUID(),
+                    title: `Task ${index + 1}`,
+                    createdAt,
+                })
+            );
+
+            const first = store.paginate({ limit: 2 });
+            const second = store.paginate({ limit: 2, cursor: first.nextCursor });
+            const third = store.paginate({ limit: 2, cursor: second.nextCursor });
+
+            const ids = [...first.items, ...second.items, ...third.items].map((task) => task.id);
+
+            expect(new Set(ids).size).toBe(5);
+            expect(ids.sort()).toEqual(tasks.map((task) => task.id).sort());
+        });
+
+        it("should return an empty page when there are no tasks", () => {
+            expect(store.paginate({ limit: 10 })).toEqual({ items: [], nextCursor: null });
+        });
+    });
 });
