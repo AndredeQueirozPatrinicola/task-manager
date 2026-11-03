@@ -3,6 +3,8 @@
 */
 import { z } from "zod";
 
+const TASKS_PAGE_SIZE = 10;
+
 const createTaskSchema = z.object({
   title: z.string().trim().min(3, "Title must have at least 3 characters"),
   description: z.string().optional(),
@@ -23,7 +25,7 @@ const taskByIdSchema = z.object({
 })
 
 const listTasksSchema = z.object({
-    limit: z.number().int().min(1).max(50).default(10),
+    limit: z.number().int().min(1).max(50).default(TASKS_PAGE_SIZE),
     cursor: z.object({
         id: z.string().uuid(),
         createdAt: z.date(),
@@ -31,6 +33,7 @@ const listTasksSchema = z.object({
 })
 
 export {
+    TASKS_PAGE_SIZE,
     createTaskSchema,
     updateTaskSchema,
     deleteTaskSchema,

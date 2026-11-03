@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePagination } from "@/app/hooks/usePagination";
 import { trpc } from "@/lib/trpc/client";
 import { getErrorMessage } from "@/lib/trpc/errors";
-import type { Task } from "@/types/task";
+import { TASKS_PAGE_SIZE } from "@/lib/validations/task";
+import type { PaginatedTasks, Task, TaskCursor } from "@/types/task";
 import { TaskItem } from "./task-item";
 
 type Feedback = {
@@ -12,11 +14,22 @@ type Feedback = {
 };
 
 type TaskListProps = {
-  initialTasks: Task[];
+  initialPage: PaginatedTasks;
 };
 
-export function TaskList({ initialTasks }: TaskListProps) {
-  const [tasks, setTasks] = useState(initialTasks);
+const fetchTasks = (cursor: TaskCursor) =>
+  trpc.tasks.listPaginated.query({ limit: TASKS_PAGE_SIZE, cursor });
+
+export function TaskList({ initialPage }: TaskListProps) {
+  const {
+    items: tasks,
+    setItems: setTasks,
+    hasMore,
+    isLoading,
+    error: loadError,
+    loadMore,
+    sentinelRef,
+  } = usePagination({ initialPage, fetchPage: fetchTasks });
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
 
@@ -58,7 +71,7 @@ export function TaskList({ initialTasks }: TaskListProps) {
         </p>
       )}
 
-      {tasks.length === 0 ? (
+      {tasks.length === 0 && !hasMore ? (
         <p className="text-sm text-gray-500">No tasks yet.</p>
       ) : (
         <ul className="space-y-3">
@@ -71,6 +84,19 @@ export function TaskList({ initialTasks }: TaskListProps) {
             />
           ))}
         </ul>
+      )}
+
+      {hasMore && <div ref={sentinelRef} />}
+
+      {isLoading && <p className="text-center text-sm text-gray-500">Loading more tasks...</p>}
+
+      {loadError !== null && (
+        <div className="flex items-center justify-center gap-3 text-sm">
+          <span className="text-red-600">{getErrorMessage(loadError)}</span>
+          <button type="button" onClick={loadMore} className="text-gray-700 underline">
+            Try again
+          </button>
+        </div>
       )}
     </section>
   );
