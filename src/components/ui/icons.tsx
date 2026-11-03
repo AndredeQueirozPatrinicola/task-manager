@@ -62,3 +62,36 @@ export function ArrowLeftIcon(props: IconProps) {
     </Icon>
   );
 }
+
+export function SearchIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="11" cy="11" r="7" />
+      <path d="M20 20l-3.5-3.5" />
+    </Icon>
+  );
+}
+
+export function XIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M18 6L6 18M6 6l12 12" />
+    </Icon>
+  );
+}
+
+export function ChevronDownIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M6 9l6 6 6-6" />
+    </Icon>
+  );
+}
+
+export function SpinnerIcon({ className = "size-4" }: IconProps) {
+  return (
+    <Icon className={`animate-spin ${className}`}>
+      <path d="M21 12a9 9 0 1 1-6.22-8.56" />
+    </Icon>
+  );
+}

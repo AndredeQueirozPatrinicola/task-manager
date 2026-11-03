@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePagination } from "@/app/hooks/usePagination";
 import { trpc } from "@/lib/trpc/client";
 import { getErrorMessage } from "@/lib/trpc/errors";
 import { TASKS_PAGE_SIZE } from "@/lib/validations/task";
-import { PlusIcon } from "@/components/ui/icons";
+import { PlusIcon, XIcon } from "@/components/ui/icons";
 import { secondaryButton } from "@/components/ui/styles";
-import type { PaginatedTasks, Task, TaskCursor } from "@/types/task";
+import type { PaginatedTasks, Task, TaskCursor, TaskSort } from "@/types/task";
 import { TaskItem } from "./task-item";
 
 type Feedback = {
@@ -18,12 +18,22 @@ type Feedback = {
 
 type TaskListProps = {
   initialPage: PaginatedTasks;
+  search: string;
+  sort: TaskSort;
+  onClearSearch: () => void;
 };
 
-const fetchTasks = (cursor: TaskCursor) =>
-  trpc.tasks.listPaginated.query({ limit: TASKS_PAGE_SIZE, cursor });
-
-export function TaskList({ initialPage }: TaskListProps) {
+export function TaskList({ initialPage, search, sort, onClearSearch }: TaskListProps) {
+  const fetchTasks = useCallback(
+    (cursor: TaskCursor) =>
+      trpc.tasks.listPaginated.query({
+        limit: TASKS_PAGE_SIZE,
+        cursor,
+        search: search || undefined,
+        sort,
+      }),
+    [search, sort],
+  );
   const {
     items: tasks,
     setItems: setTasks,
@@ -57,6 +67,24 @@ export function TaskList({ initialPage }: TaskListProps) {
     } finally {
       setDeletingId(null);
     }
+  }
+
+  if (tasks.length === 0 && !hasMore && search) {
+    return (
+      <>
+        <div className="rounded-lg border border-dashed border-gray-300 bg-white px-6 py-16 text-center">
+          <p className="text-sm font-medium text-gray-900 wrap-break-word">
+            No tasks match &ldquo;{search}&rdquo;
+          </p>
+          <p className="mt-1 text-sm text-gray-500">Try a different term or clear the search.</p>
+          <button type="button" onClick={onClearSearch} className={`${secondaryButton} mt-5`}>
+            <XIcon />
+            Clear search
+          </button>
+        </div>
+        <Toast feedback={feedback} />
+      </>
+    );
   }
 
   if (tasks.length === 0 && !hasMore) {
