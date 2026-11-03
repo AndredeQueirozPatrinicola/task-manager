@@ -7,6 +7,7 @@ import { trpc } from "@/lib/trpc/client";
 import { getErrorMessage, isTRPCClientError } from "@/lib/trpc/errors";
 import { createTaskSchema } from "@/lib/validations/task";
 import type { Task } from "@/types/task";
+import { inputField, primaryButton, secondaryButton } from "@/components/ui/styles";
 
 type TaskFormProps = {
   task?: Task;
@@ -72,55 +73,67 @@ export function TaskForm({ task }: TaskFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="space-y-4">
-      <div className="space-y-1">
-        <label htmlFor="title" className="block text-sm font-medium">
-          Title
-        </label>
-        <input
-          id="title"
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          aria-invalid={Boolean(fieldErrors.title)}
-          className="w-full rounded border border-gray-300 bg-white px-3 py-2 aria-invalid:border-red-500"
-        />
-        {fieldErrors.title && <p className="text-sm text-red-600">{fieldErrors.title}</p>}
-      </div>
+    <form
+      onSubmit={handleSubmit}
+      noValidate
+      className="rounded-lg border border-gray-200 bg-white shadow-xs"
+    >
+      <div className="space-y-5 p-6">
+        <div>
+          <label htmlFor="title" className="block text-sm font-medium text-gray-900">
+            Title
+          </label>
+          <input
+            id="title"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder="e.g. Review pull requests"
+            aria-invalid={Boolean(fieldErrors.title)}
+            aria-describedby={fieldErrors.title ? "title-error" : undefined}
+            className={`${inputField} mt-1.5`}
+          />
+          {fieldErrors.title && (
+            <p id="title-error" className="mt-1.5 text-xs text-red-600">
+              {fieldErrors.title}
+            </p>
+          )}
+        </div>
 
-      <div className="space-y-1">
-        <label htmlFor="description" className="block text-sm font-medium">
-          Description <span className="font-normal text-gray-400">(optional)</span>
-        </label>
-        <textarea
-          id="description"
-          rows={4}
-          value={description}
-          onChange={(event) => setDescription(event.target.value)}
-          aria-invalid={Boolean(fieldErrors.description)}
-          className="w-full rounded border border-gray-300 bg-white px-3 py-2 aria-invalid:border-red-500"
-        />
-        {fieldErrors.description && (
-          <p className="text-sm text-red-600">{fieldErrors.description}</p>
+        <div>
+          <label htmlFor="description" className="block text-sm font-medium text-gray-900">
+            Description <span className="font-normal text-gray-400">(optional)</span>
+          </label>
+          <textarea
+            id="description"
+            rows={5}
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            placeholder="Add any details that help you get it done."
+            aria-invalid={Boolean(fieldErrors.description)}
+            aria-describedby={fieldErrors.description ? "description-error" : undefined}
+            className={`${inputField} mt-1.5 resize-y`}
+          />
+          {fieldErrors.description && (
+            <p id="description-error" className="mt-1.5 text-xs text-red-600">
+              {fieldErrors.description}
+            </p>
+          )}
+        </div>
+
+        {submitError && (
+          <p role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {submitError}
+          </p>
         )}
       </div>
 
-      {submitError && (
-        <p role="alert" className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-          {submitError}
-        </p>
-      )}
-
-      <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-700 disabled:opacity-50"
-        >
-          {isSubmitting ? "Saving..." : task ? "Save changes" : "Create task"}
-        </button>
-        <Link href="/" className="text-sm text-gray-600 hover:underline">
+      <div className="flex justify-end gap-3 rounded-b-lg border-t border-gray-100 bg-gray-50/60 px-6 py-4">
+        <Link href="/" className={secondaryButton}>
           Cancel
         </Link>
+        <button type="submit" disabled={isSubmitting} className={primaryButton}>
+          {isSubmitting ? "Saving..." : task ? "Save changes" : "Create task"}
+        </button>
       </div>
     </form>
   );
