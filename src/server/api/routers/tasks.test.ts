@@ -127,8 +127,31 @@ describe("Task Router", () => {
         it("should reject an invalid cursor", async () => {
             await expect(
                 caller.tasks.listPaginated({
-                    cursor: { id: "invalid-id", createdAt: new Date() },
+                    cursor: { id: "invalid-id", title: "Task", createdAt: new Date() },
                 })
+            ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+        });
+
+        it("should filter tasks by search", async () => {
+            const task = await createTask("Searchable unicorn task");
+
+            const page = await caller.tasks.listPaginated({ search: "unicorn" });
+
+            expect(page.items).toEqual([task]);
+        });
+
+        it("should sort tasks by title", async () => {
+            const page = await caller.tasks.listPaginated({ limit: 50, sort: "title_asc" });
+            const titles = page.items.map((task) => task.title);
+
+            expect(titles).toEqual(
+                [...titles].sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
+            );
+        });
+
+        it("should reject an unknown sort", async () => {
+            await expect(
+                caller.tasks.listPaginated({ sort: "random" as never })
             ).rejects.toMatchObject({ code: "BAD_REQUEST" });
         });
     });

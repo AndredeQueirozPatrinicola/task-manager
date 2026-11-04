@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createTaskSchema, deleteTaskSchema, taskByIdSchema, updateTaskSchema } from "./task";
+import { createTaskSchema, deleteTaskSchema, listTasksSchema, taskByIdSchema, updateTaskSchema } from "./task";
 
 describe("createTaskSchema", () => {
 
@@ -150,6 +150,32 @@ describe("taskByIdSchema", () => {
         const result = taskByIdSchema.safeParse({
             id: "invalid-uuid",
         });
+
+        expect(result.success).toBe(false);
+    });
+});
+
+describe("listTasksSchema", () => {
+    it("should apply the default limit and sort", () => {
+        const result = listTasksSchema.parse({});
+
+        expect(result).toMatchObject({ limit: 10, sort: "newest" });
+    });
+
+    it("should trim the search term", () => {
+        const result = listTasksSchema.parse({ search: "  report  " });
+
+        expect(result.search).toBe("report");
+    });
+
+    it("should reject an unknown sort", () => {
+        const result = listTasksSchema.safeParse({ sort: "random" });
+
+        expect(result.success).toBe(false);
+    });
+
+    it("should reject a search longer than 100 characters", () => {
+        const result = listTasksSchema.safeParse({ search: "a".repeat(101) });
 
         expect(result.success).toBe(false);
     });

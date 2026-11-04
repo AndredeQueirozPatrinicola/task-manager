@@ -148,6 +148,7 @@ describe("TaskStore", () => {
             expect(page.items).toEqual([tasks[4], tasks[3]]);
             expect(page.nextCursor).toEqual({
                 id: tasks[3].id,
+                title: tasks[3].title,
                 createdAt: tasks[3].createdAt,
             });
         });
@@ -207,6 +208,95 @@ describe("TaskStore", () => {
 
         it("should return an empty page when there are no tasks", () => {
             expect(store.paginate({ limit: 10 })).toEqual({ items: [], nextCursor: null });
+        });
+    });
+
+    describe("paginate with sort", () => {
+        const createTask = (title: string, day: number) =>
+            store.create({
+                id: crypto.randomUUID(),
+                title,
+                createdAt: new Date(2024, 0, day),
+            });
+
+        it("should sort by oldest first", () => {
+            const first = createTask("First", 1);
+            const second = createTask("Second", 2);
+
+            expect(store.paginate({ limit: 10, sort: "oldest" }).items).toEqual([first, second]);
+        });
+
+        it("should sort by title ignoring case", () => {
+            const banana = createTask("banana", 1);
+            const apple = createTask("Apple", 2);
+            const cherry = createTask("Cherry", 3);
+
+            expect(store.paginate({ limit: 10, sort: "title_asc" }).items)
+                .toEqual([apple, banana, cherry]);
+            expect(store.paginate({ limit: 10, sort: "title_desc" }).items)
+                .toEqual([cherry, banana, apple]);
+        });
+
+        it("should paginate by title without skipping repeated titles", () => {
+            const tasks = ["Alpha", "Beta", "Beta", "Beta", "Gamma"].map((title, index) =>
+                createTask(title, index + 1)
+            );
+
+            const first = store.paginate({ limit: 2, sort: "title_asc" });
+            const second = store.paginate({ limit: 2, sort: "title_asc", cursor: first.nextCursor });
+            const third = store.paginate({ limit: 2, sort: "title_asc", cursor: second.nextCursor });
+
+            const titles = [...first.items, ...second.items, ...third.items].map((task) => task.title);
+            const ids = [...first.items, ...second.items, ...third.items].map((task) => task.id);
+
+            expect(titles).toEqual(["Alpha", "Beta", "Beta", "Beta", "Gamma"]);
+            expect(new Set(ids).size).toBe(tasks.length);
+            expect(third.nextCursor).toBeNull();
+        });
+    });
+
+    describe("paginate with search", () => {
+        const createTask = (title: string, description?: string) =>
+            store.create({
+                id: crypto.randomUUID(),
+                title,
+                description,
+                createdAt: new Date(),
+            });
+
+        it("should match the title ignoring case and accents", () => {
+            const task = createTask("Revisão do código");
+            createTask("Another task");
+
+            expect(store.paginate({ limit: 10, search: "REVISAO" }).items).toEqual([task]);
+        });
+
+        it("should match the description", () => {
+            const task = createTask("Groceries", "Buy milk and eggs");
+            createTask("Laundry");
+
+            expect(store.paginate({ limit: 10, search: "milk" }).items).toEqual([task]);
+        });
+
+        it("should return an empty page when nothing matches", () => {
+            createTask("Laundry");
+
+            expect(store.paginate({ limit: 10, search: "nothing" })).toEqual({
+                items: [],
+                nextCursor: null,
+            });
+        });
+
+        it("should paginate the filtered results", () => {
+            Array.from({ length: 3 }, (_, index) => createTask(`Report ${index}`));
+            createTask("Unrelated");
+
+            const first = store.paginate({ limit: 2, search: "report" });
+            const second = store.paginate({ limit: 2, search: "report", cursor: first.nextCursor });
+
+            expect(first.items).toHaveLength(2);
+            expect(second.items).toHaveLength(1);
+            expect(second.nextCursor).toBeNull();
         });
     });
 });

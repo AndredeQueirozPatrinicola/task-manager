@@ -5,6 +5,8 @@ import { z } from "zod";
 
 const TASKS_PAGE_SIZE = 10;
 
+const TASK_SORTS = ["newest", "oldest", "title_asc", "title_desc"] as const;
+
 const createTaskSchema = z.object({
   title: z.string().trim().min(3, "Title must have at least 3 characters"),
   description: z.string().optional(),
@@ -28,12 +30,16 @@ const listTasksSchema = z.object({
     limit: z.number().int().min(1).max(50).default(TASKS_PAGE_SIZE),
     cursor: z.object({
         id: z.string().uuid(),
+        title: z.string(),
         createdAt: z.date(),
     }).nullish(),
+    search: z.string().trim().max(100).optional(),
+    sort: z.enum(TASK_SORTS).default("newest"),
 })
 
 export {
     TASKS_PAGE_SIZE,
+    TASK_SORTS,
     createTaskSchema,
     updateTaskSchema,
     deleteTaskSchema,
